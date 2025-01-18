@@ -75,6 +75,9 @@ jobs:
         with:
           submodules: true
 
+      - if: matrix.os == 'linux-large'
+        run: sudo apt update && sudo apt install libx11-6
+
       - name: Read .zig-version
         id: zigversion
         uses: juliangruber/read-file-action@v1
