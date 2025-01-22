@@ -65,7 +65,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [linux-large, macos-13-large, windows-large]
+        os: 
+          # FIXME: Problem with x11 in CI (latest ubuntu). But it works on linux
+          #- linux-large 
+          - macos-13-large
+          - windows-large
+
     runs-on: ${{matrix.os}}
     name: "Build examples"
     timeout-minutes: 15
@@ -75,8 +80,8 @@ jobs:
         with:
           submodules: true
 
-      - if: matrix.os == 'linux-large'
-        run: sudo apt update && sudo apt install libx11-6
+      # - if: matrix.os == 'linux-large'
+      #   run: sudo apt update && sudo apt install libx11-6
 
       - name: Read .zig-version
         id: zigversion
