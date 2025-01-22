@@ -33,7 +33,7 @@ static const bgfx::EmbeddedShader s_embeddedShaders[] = {
 
 struct OcornutImguiContext
 {
-	void render(ImDrawData* _drawData)
+	void render(ImDrawData* _drawData, bgfx::ViewId _viewId)
 	{
 		// Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
 		int32_t dispWidth  = _drawData->DisplaySize.x * _drawData->FramebufferScale.x;
@@ -44,8 +44,8 @@ struct OcornutImguiContext
 			return;
 		}
 
-		bgfx::setViewName(m_viewId, "ImGui");
-		bgfx::setViewMode(m_viewId, bgfx::ViewMode::Sequential);
+		bgfx::setViewName(_viewId, "ImGui");
+		bgfx::setViewMode(_viewId, bgfx::ViewMode::Sequential);
 
 		const bgfx::Caps* caps = bgfx::getCaps();
 		{
@@ -56,8 +56,8 @@ struct OcornutImguiContext
 			float height = _drawData->DisplaySize.y;
 
 			bx::mtxOrtho(ortho, x, x + width, y + height, y, 0.0f, 1000.0f, 0.0f, caps->homogeneousDepth);
-			bgfx::setViewTransform(m_viewId, NULL, ortho);
-			bgfx::setViewRect(m_viewId, 0, 0, uint16_t(width), uint16_t(height) );
+			bgfx::setViewTransform(_viewId, NULL, ortho);
+			bgfx::setViewRect(_viewId, 0, 0, uint16_t(width), uint16_t(height) );
 		}
 
 		const ImVec2 clipPos   = _drawData->DisplayPos;       // (0,0) unless using multi-viewports
@@ -152,7 +152,7 @@ struct OcornutImguiContext
 						encoder->setTexture(0, s_tex, th);
 						encoder->setVertexBuffer(0, &tvb, cmd->VtxOffset, numVertices);
 						encoder->setIndexBuffer(&tib, cmd->IdxOffset, cmd->ElemCount);
-						encoder->submit(m_viewId, program);
+						encoder->submit(_viewId, program);
 					}
 				}
 			}
@@ -239,7 +239,7 @@ struct OcornutImguiContext
 	void endFrame()
 	{
 		ImGui::Render();
-		render(ImGui::GetDrawData());
+		render(ImGui::GetDrawData(), m_viewId);
 	}
 
 	bx::AllocatorI *m_allocator;
@@ -274,5 +274,10 @@ extern "C"
 	IMGUI_IMPL_API void ImGui_ImplBgfx_RenderDrawData()
 	{
 		s_ctx.endFrame();
+	}
+
+	IMGUI_IMPL_API void ImGui_ImplBgfx_Render(ImDrawData* _drawData, bgfx::ViewId _viewId)
+	{
+		s_ctx.render(_drawData, _viewId);
 	}
 }
